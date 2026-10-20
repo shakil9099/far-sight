@@ -53,7 +53,9 @@
           "from": "build/bin/farsight-mic",
           "to": "bin/farsight-mic"
         }
-      ]
+      ],
+      "identity": "-",
+      "hardenedRuntime": false
     },
     "dmg": {
       "artifactName": "FarSight-${version}-${arch}.dmg"

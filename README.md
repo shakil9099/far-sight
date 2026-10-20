@@ -11,7 +11,44 @@ italic serif break titles. Headings use
 [Instrument Serif](https://github.com/Instrument/instrument-serif) (SIL Open Font License,
 see `src/renderer/fonts/OFL.txt`).
 
-## Quick start
+## How to install
+
+Download the latest build from the [Releases page](https://github.com/shakil9099/far-sight/releases),
+or build it yourself (see [Building installers](#building-installers)).
+
+### macOS
+
+1. Pick the DMG for your Mac (Apple menu → **About This Mac** → *Chip*):
+
+   | Your chip | File |
+   | --- | --- |
+   | Apple Silicon (M1, M2, M3, M4…) | `FarSight-<version>-arm64.dmg` |
+   | Intel | `FarSight-<version>-x64.dmg` |
+
+2. Open the DMG and drag **FarSight** into **Applications**.
+3. Launch FarSight from Applications or Spotlight. The panel opens and an eye icon
+   appears in the menu bar.
+4. First launch only: FarSight isn't notarized by Apple yet, so macOS may say it
+   "can't be opened". Right-click **FarSight.app** → **Open** → **Open**, or run:
+
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/FarSight.app
+   ```
+
+5. Optional: **Settings → General → Launch at login**.
+
+If you can't see the menu-bar icon (it can hide behind the notch on MacBooks), open
+FarSight again from Applications to bring up its panel.
+
+### Windows
+
+1. Download `FarSight-<version>-win-x64.exe` (installer) or `FarSight-<version>-win-x64.zip`.
+2. Run the installer, or unzip and run `FarSight.exe`.
+3. If SmartScreen warns about an unrecognised app, click **More info → Run anyway**
+   (the app isn't code-signed yet).
+4. FarSight runs in the system tray (click **^** next to the clock if the icon is hidden).
+
+## Quick start (development)
 
 ```bash
 npm install
