@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'" />
+    <title>FarSight</title>
+    <link rel="stylesheet" href="base.css" />
+    <link rel="stylesheet" href="popover.css" />
+  </head>
+  <body>
+    <div id="panel" class="glass">
+      <header>
+        <button class="plain icon-btn" id="btn-calendar" title="Open stats"></button>
+        <div class="segmented" id="tabs">
+          <button data-tab="now" class="on">Now</button>
+          <button data-tab="stats">Stats</button>
+        </div>
+        <button class="plain icon-btn" id="btn-settings" title="Settings"></button>
+      </header>
+      <section id="view"></section>
+    </div>
+    <script src="popover.js"></script>
+  </body>
+</html>

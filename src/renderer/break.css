@@ -1,0 +1,148 @@
+body {
+  overflow: hidden;
+  cursor: default;
+}
+
+#bg,
+#tint {
+  position: fixed;
+  inset: 0;
+}
+#bg {
+  background-size: cover;
+  background-position: center;
+  animation: drift 40s ease-in-out infinite alternate;
+  transform: scale(1.08);
+}
+#tint {
+  background: radial-gradient(circle at 50% 45%, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.45));
+}
+body.blur #bg {
+  display: none;
+}
+body.blur #tint {
+  background: rgba(10, 12, 20, 0.38);
+}
+body.image #tint {
+  background: rgba(0, 0, 0, 0.42);
+}
+
+@keyframes drift {
+  from {
+    transform: scale(1.08) translate(-1%, -1%);
+  }
+  to {
+    transform: scale(1.14) translate(1%, 1.5%);
+  }
+}
+
+main {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+  opacity: 0;
+  animation: fadein 0.9s ease forwards;
+}
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+#clock {
+  position: absolute;
+  top: 6vh;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--fg-dim);
+}
+
+#ring-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin-bottom: 34px;
+}
+#ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+#ring circle {
+  fill: none;
+  stroke-width: 5;
+}
+#ring .track {
+  stroke: rgba(255, 255, 255, 0.14);
+}
+#ring .progress {
+  stroke: rgba(255, 255, 255, 0.92);
+  stroke-linecap: round;
+  stroke-dasharray: 628.32;
+  transition: stroke-dashoffset 1s linear;
+}
+#time {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font);
+  font-size: 54px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(44px, 5.6vw, 84px);
+  line-height: 1.05;
+  margin: 0 0 14px;
+  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.35);
+}
+#message {
+  max-width: 560px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--fg-dim);
+  margin: 0 0 36px;
+}
+#actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-height: 38px;
+}
+#actions button {
+  backdrop-filter: blur(14px);
+  font-size: 15px;
+  padding: 9px 18px;
+}
+#hint {
+  position: absolute;
+  bottom: 5vh;
+  font-size: 12.5px;
+  color: var(--fg-faint);
+  margin: 0;
+}
+
+body.secondary #actions,
+body.secondary #hint {
+  display: none;
+}
+body.complete #ring .progress {
+  stroke: var(--good);
+}

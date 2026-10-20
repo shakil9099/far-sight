@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'" />
+    <title>FarSight Countdown</title>
+    <link rel="stylesheet" href="base.css" />
+    <style>
+      body {
+        display: flex;
+        align-items: flex-start;
+        padding: 6px;
+      }
+      .pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 16px 6px 6px;
+        border-radius: 999px;
+        background: rgba(36, 30, 54, 0.9);
+        animation: pop 0.25s ease;
+      }
+      @keyframes pop {
+        from {
+          transform: scale(0.85);
+          opacity: 0;
+        }
+      }
+      .ring {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: conic-gradient(#ffb36b var(--p, 0%), rgba(255, 255, 255, 0.14) 0);
+        display: grid;
+        place-items: center;
+      }
+      .ring .tile {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+      }
+      .n {
+        font-size: 19px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pill glass">
+      <div class="ring" id="ring"><span class="tile sunset" id="glyph"></span></div>
+      <div class="n num" id="num">10</div>
+    </div>
+    <script src="countdown.js"></script>
+  </body>
+</html>

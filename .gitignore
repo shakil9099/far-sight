@@ -1,0 +1,6 @@
+node_modules/
+dist/
+release/
+screenshots/
+.DS_Store
+build/bin/

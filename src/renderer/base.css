@@ -1,0 +1,212 @@
+/* FarSight design system: translucent "glass" surfaces, rounded numerals, pill buttons,
+   gradient icon tiles. */
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: italic;
+  src: url("fonts/InstrumentSerif-Italic.ttf") format("truetype");
+}
+
+:root {
+  --font: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-text: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+
+  --fg: #ffffff;
+  --fg-2: rgba(255, 255, 255, 0.78);
+  --fg-3: rgba(255, 255, 255, 0.55);
+  --fg-4: rgba(255, 255, 255, 0.35);
+
+  /* glass surfaces */
+  --glass: rgba(34, 28, 48, 0.62);
+  --glass-strong: rgba(28, 24, 40, 0.86);
+  --glass-border: rgba(255, 255, 255, 0.13);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --row: rgba(255, 255, 255, 0.07);
+  --row-hover: rgba(255, 255, 255, 0.11);
+  --hairline: rgba(255, 255, 255, 0.09);
+
+  /* pills */
+  --pill-fill: rgba(255, 255, 255, 0.2);
+  --pill-fill-hover: rgba(255, 255, 255, 0.28);
+  --pill-line: rgba(255, 255, 255, 0.2);
+
+  /* accents (icon tiles, gauge) */
+  --gold-1: #f2c94c;
+  --gold-2: #b8860b;
+  --pink-1: #ff7ae6;
+  --pink-2: #b44bd9;
+  --sunset-1: #ff8a3d;
+  --sunset-2: #ff3d8b;
+  --sky-1: #5ac8fa;
+  --sky-2: #3a6df0;
+  --mint-1: #5ee6a8;
+  --mint-2: #1fa67a;
+  --grey-1: #8e8e93;
+  --grey-2: #55555c;
+
+  --radius-xl: 26px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--font-text);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  background: transparent;
+}
+
+.num {
+  font-family: var(--font);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- glass panel ---------- */
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-highlight), 0 18px 50px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(30px) saturate(1.6);
+  -webkit-backdrop-filter: blur(30px) saturate(1.6);
+}
+
+/* ---------- pill buttons ---------- */
+button {
+  font: inherit;
+  font-family: var(--font);
+  font-weight: 600;
+  color: var(--fg);
+  border: 1.5px solid var(--pill-line);
+  background: transparent;
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+button:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+button.primary {
+  background: var(--pill-fill);
+  border-color: transparent;
+}
+button.primary:hover:not(:disabled) {
+  background: var(--pill-fill-hover);
+}
+button.plain {
+  border: none;
+  background: none;
+  padding: 4px;
+}
+
+/* ---------- gradient icon tiles ---------- */
+.tile {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.tile svg {
+  width: 62%;
+  height: 62%;
+}
+.tile.lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+.tile.gold {
+  background: linear-gradient(160deg, var(--gold-1), var(--gold-2));
+}
+.tile.pink {
+  background: linear-gradient(160deg, var(--pink-1), var(--pink-2));
+}
+.tile.sunset {
+  background: linear-gradient(160deg, var(--sunset-1), var(--sunset-2));
+}
+.tile.sky {
+  background: linear-gradient(160deg, var(--sky-1), var(--sky-2));
+}
+.tile.mint {
+  background: linear-gradient(160deg, var(--mint-1), var(--mint-2));
+}
+.tile.grey {
+  background: linear-gradient(160deg, var(--grey-1), var(--grey-2));
+}
+
+/* ---------- list rows ---------- */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px 10px 10px;
+  border-radius: var(--radius-md);
+  background: var(--row);
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 14px;
+}
+.item .grow {
+  flex: 1;
+  min-width: 0;
+}
+.item .value {
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+.item .dot {
+  color: var(--fg-4);
+  margin: 0 6px;
+}
+
+/* ---------- segmented control ---------- */
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--hairline);
+}
+.segmented button {
+  border: none;
+  border-radius: 9px;
+  padding: 6px 16px;
+  color: var(--fg-2);
+  font-size: 14px;
+}
+.segmented button.on {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--fg);
+}

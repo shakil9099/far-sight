@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data:; style-src 'self' 'unsafe-inline'; font-src 'self'" />
+    <title>FarSight Break</title>
+    <link rel="stylesheet" href="base.css" />
+    <link rel="stylesheet" href="break.css" />
+  </head>
+  <body>
+    <div id="bg"></div>
+    <div id="tint"></div>
+    <main id="root">
+      <div id="clock" class="tabular"></div>
+      <div id="ring-wrap">
+        <svg id="ring" viewBox="0 0 220 220" aria-hidden="true">
+          <circle class="track" cx="110" cy="110" r="100" />
+          <circle class="progress" id="progress" cx="110" cy="110" r="100" />
+        </svg>
+        <div id="time" class="tabular">0:20</div>
+      </div>
+      <h1 id="title"></h1>
+      <p id="message"></p>
+      <div id="actions"></div>
+      <p id="hint"></p>
+    </main>
+    <script src="break.js"></script>
+  </body>
+</html>
