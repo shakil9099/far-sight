@@ -4,3 +4,6 @@ release/
 screenshots/
 .DS_Store
 build/bin/
+
+# Tauri build output
+src-tauri/target/

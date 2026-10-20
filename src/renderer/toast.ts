@@ -1,11 +1,10 @@
 import { formatClock, formatDuration } from "../shared/messages";
 import type { EngineSnapshot } from "../shared/types";
-import { api, el } from "./api";
+import { api, el, param } from "./api";
 import { ICONS, icon, type IconName } from "./icons";
 
-const params = new URLSearchParams(location.search);
-const kind = params.get("kind") ?? "info";
-const payload = JSON.parse(params.get("payload") ?? "{}");
+const kind = param<string>("kind") ?? "info";
+const payload = param<Record<string, any>>("payload") ?? {};
 const card = document.getElementById("card")!;
 const close = () => api.cmd("closeToast", kind);
 

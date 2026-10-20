@@ -1,13 +1,26 @@
-// Typed access to the preload bridge from renderer pages.
+// Typed access to the FarSight backend (Tauri IPC) from the UI pages.
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import type { EngineSnapshot, Settings, StatsSummary } from "../shared/types";
 
-interface Bridge {
-  platform: string;
-  cmd: (name: string, ...args: unknown[]) => Promise<any>;
-  on: (channel: "state" | "settings" | "sound" | "open-tab", cb: (payload: any) => void) => () => void;
+type Channel = "state" | "settings" | "open-tab";
+
+/** Set by the backend before page scripts run (see src-tauri/src/ui.rs). */
+const FS = (window as unknown as { __FS?: { platform: string; params: Record<string, unknown> } }).__FS ?? { platform: "", params: {} };
+
+/** A page parameter passed by the backend when it opened this window. */
+export function param<T = unknown>(name: string): T | undefined {
+  return FS.params?.[name] as T | undefined;
 }
 
-export const bridge = (window as unknown as { farsight: Bridge }).farsight;
+export const bridge = {
+  platform: FS.platform,
+  cmd: (name: string, ...args: unknown[]): Promise<any> => invoke("cmd", { name, args }),
+  on: (channel: Channel, cb: (payload: any) => void): (() => void) => {
+    const off = listen(channel, (e) => cb(e.payload));
+    return () => void off.then((f) => f());
+  },
+};
 
 export const api = {
   state: (): Promise<EngineSnapshot> => bridge.cmd("getState"),
@@ -48,3 +61,10 @@ export function el<K extends keyof HTMLElementTagNameMap>(
   for (const c of children) if (c != null && c !== false) node.append(c as Node | string);
   return node;
 }
+
+// Report page loads and script errors to the backend (printed with FARSIGHT_DEBUG=1).
+const page = location.pathname.split("/").pop() || "page";
+const report = (msg: string) => void bridge.cmd("log", `${page}: ${msg}`).catch(() => {});
+window.addEventListener("error", (e) => report(`error: ${e.message} @ ${e.filename}:${e.lineno}`));
+window.addEventListener("unhandledrejection", (e) => report(`unhandled rejection: ${String(e.reason)}`));
+window.addEventListener("load", () => report("loaded"));

@@ -1,9 +1,10 @@
 import { formatClock } from "../shared/messages";
 import type { EngineSnapshot, Settings } from "../shared/types";
-import { api, el, gradientCss } from "./api";
+import { convertFileSrc } from "@tauri-apps/api/core";
+import { api, el, gradientCss, param } from "./api";
 
 const CIRC = 2 * Math.PI * 100;
-const primary = new URLSearchParams(location.search).get("primary") === "1";
+const primary = param<boolean>("primary") === true;
 if (!primary) document.body.classList.add("secondary");
 
 const $ = (id: string) => document.getElementById(id)!;
@@ -16,9 +17,8 @@ function applyLook(s: Settings): void {
   document.body.classList.toggle("image", s.breakBackground === "image" && !!s.backgroundImage);
   const bg = $("bg");
   if (s.breakBackground === "image" && s.backgroundImage) {
-    // macOS: /Users/x/a.jpg -> file:///Users/x/a.jpg ; Windows: C:\x\a.jpg -> file:///C:/x/a.jpg
-    const p = s.backgroundImage.replace(/\\/g, "/");
-    bg.style.backgroundImage = `url("${encodeURI(`file://${p.startsWith("/") ? "" : "/"}${p}`)}")`;
+    // Served through Tauri's asset protocol (the backend allows exactly this file).
+    bg.style.backgroundImage = `url("${convertFileSrc(s.backgroundImage)}")`;
   } else {
     bg.style.backgroundImage = gradientCss(s.gradient);
   }

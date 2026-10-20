@@ -8,27 +8,34 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-latest
             script: dist:mac
+            targets: aarch64-apple-darwin,x86_64-apple-darwin
+            artifacts: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
           - os: windows-latest
             script: dist:win
+            targets: x86_64-pc-windows-msvc
+            artifacts: src-tauri/target/release/bundle/nsis/*.exe
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.targets }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
       - run: npm ci
       - run: npm test
       - run: npm run ${{ matrix.script }}
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
       - uses: actions/upload-artifact@v4
         with:
           name: farsight-${{ matrix.os }}
-          path: |
-            release/*.dmg
-            release/*.zip
-            release/*.exe
+          path: ${{ matrix.artifacts }}

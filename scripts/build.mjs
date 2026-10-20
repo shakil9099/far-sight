@@ -1,54 +1,36 @@
-// Bundles main, preload and renderer code with esbuild and copies static assets into dist/.
+// Bundles the UI pages with esbuild into dist/renderer (Tauri's frontendDist).
+// `--release` minifies and drops source maps.
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { cpSync, mkdirSync, rmSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const dist = join(root, "dist");
-const watch = process.argv.includes("--watch");
+const src = join(root, "src/renderer");
+const out = join(root, "dist/renderer");
+const release = process.argv.includes("--release");
 
-rmSync(dist, { recursive: true, force: true });
-mkdirSync(join(dist, "renderer"), { recursive: true });
+// Modules imported by pages, not pages themselves.
+const SHARED = new Set(["api.ts", "icons.ts", "gauge.ts"]);
 
-const common = { bundle: true, sourcemap: "inline", logLevel: "info", target: "es2023" };
-
-await build({
-  ...common,
-  entryPoints: [join(root, "src/main/main.ts")],
-  outfile: join(dist, "main/main.js"),
-  platform: "node",
-  format: "cjs",
-  external: ["electron"],
-});
+rmSync(join(root, "dist"), { recursive: true, force: true });
+mkdirSync(out, { recursive: true });
 
 await build({
-  ...common,
-  entryPoints: [join(root, "src/preload/preload.ts")],
-  outfile: join(dist, "preload/preload.js"),
-  platform: "node",
-  format: "cjs",
-  external: ["electron"],
-});
-
-const pages = readdirSync(join(root, "src/renderer"))
-  .filter((f) => f.endsWith(".ts"))
-  .map((f) => join(root, "src/renderer", f));
-
-await build({
-  ...common,
-  entryPoints: pages,
-  outdir: join(dist, "renderer"),
+  entryPoints: readdirSync(src)
+    .filter((f) => f.endsWith(".ts") && !SHARED.has(f))
+    .map((f) => join(src, f)),
+  outdir: out,
+  bundle: true,
   platform: "browser",
   format: "iife",
+  target: "es2022",
+  minify: release,
+  sourcemap: release ? false : "inline",
+  logLevel: "info",
 });
 
-for (const f of readdirSync(join(root, "src/renderer"))) {
-  if (f.endsWith(".html") || f.endsWith(".css")) {
-    cpSync(join(root, "src/renderer", f), join(dist, "renderer", f));
-  }
+for (const f of readdirSync(src)) {
+  if (f.endsWith(".html") || f.endsWith(".css")) cpSync(join(src, f), join(out, f));
 }
-cpSync(join(root, "src/renderer/fonts"), join(dist, "renderer/fonts"), { recursive: true });
-cpSync(join(root, "build/tray"), join(dist, "tray"), { recursive: true });
-
-if (watch) console.log("watch mode not implemented; rerun npm run build");
+cpSync(join(src, "fonts"), join(out, "fonts"), { recursive: true });

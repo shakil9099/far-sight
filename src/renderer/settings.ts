@@ -1,13 +1,13 @@
 import { OPTIONS } from "../shared/defaults";
 import { formatClock, formatDuration } from "../shared/messages";
 import type { Automation, EngineSnapshot, PlannedBreak, Settings, StatsSummary, Weekday } from "../shared/types";
-import { api, bridge, el, GRADIENTS, gradientCss } from "./api";
+import { api, bridge, el, GRADIENTS, gradientCss, param } from "./api";
 import { gauge } from "./gauge";
 import { icon, type IconName } from "./icons";
 
 type Key = keyof Settings;
 let s: Settings;
-let current = new URLSearchParams(location.search).get("tab") ?? "general";
+let current = param<string>("tab") ?? "general";
 const content = document.getElementById("content")!;
 const isMac = bridge.platform === "darwin";
 document.body.classList.add(isMac ? "mac" : "win");
