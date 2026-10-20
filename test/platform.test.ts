@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SETTINGS } from "../src/shared/defaults";
 import { isOutsideOfficeHours } from "../src/main/platform";
-import { matchesApp } from "../src/main/activity";
+import { matchesApp } from "../src/main/smartpause";
 
 describe("office hours", () => {
   const s = { ...DEFAULT_SETTINGS, officeHoursEnabled: true };
@@ -26,7 +26,7 @@ describe("office hours", () => {
 
 describe("app matching", () => {
   it("matches by name or bundle id, case-insensitively", () => {
-    const sample = { frontApp: "zoom.us", frontAppId: "us.zoom.xos", fullscreen: false, micApps: [] };
+    const sample = { frontApp: "zoom.us", frontAppId: "us.zoom.xos" };
     expect(matchesApp(sample, ["Zoom.us"])).toBe("Zoom.us");
     expect(matchesApp(sample, ["us.zoom.xos"])).toBe("us.zoom.xos");
     expect(matchesApp(sample, ["Keynote"])).toBeNull();

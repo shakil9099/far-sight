@@ -13,6 +13,8 @@ export function emptyDay(date: string): DayStats {
     sessions: [],
     longestSessionSec: 0,
     hourly: new Array(24).fill(0),
+    videoSec: 0,
+    videoApps: {},
   };
 }
 
@@ -70,7 +72,17 @@ export class StatsBook {
 
   day(now: number): DayStats {
     const key = dayKey(now);
-    return (this.days[key] ??= emptyDay(key));
+    const d = (this.days[key] ??= emptyDay(key));
+    // Days saved by older versions lack the video fields.
+    d.videoSec ??= 0;
+    d.videoApps ??= {};
+    return d;
+  }
+
+  addVideo(now: number, seconds: number, app: string): void {
+    const d = this.day(now);
+    d.videoSec += seconds;
+    d.videoApps[app] = (d.videoApps[app] ?? 0) + seconds;
   }
 
   addFocus(now: number, seconds: number): void {

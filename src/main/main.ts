@@ -19,7 +19,8 @@ import { mergeSettings } from "../shared/defaults";
 import { formatClock, formatDuration } from "../shared/messages";
 import { StatsBook } from "../shared/stats";
 import type { DayStats, PauseReason, Settings } from "../shared/types";
-import { ActivityMonitor, listRunningApps, matchesApp } from "./activity";
+import { ActivityMonitor, listRunningApps } from "./activity";
+import { detectSmartPause, detectVideo, isQuietReason } from "./smartpause";
 import { isOutsideOfficeHours, lockScreen, runAutomation } from "./platform";
 import { JsonStore } from "./store";
 import {
@@ -73,23 +74,21 @@ function broadcast(channel: string, payload: unknown): void {
   for (const w of BrowserWindow.getAllWindows()) if (!w.isDestroyed()) w.webContents.send(channel, payload);
 }
 
+/** True while on a call or watching a video: FarSight stays silent and shows nothing. */
+function isQuiet(): boolean {
+  return isQuietReason(engine.snapshot().pause?.reason);
+}
+
+const REMINDER_SOUNDS = new Set(["nudge", "blink", "posture", "return"]);
+
 function play(sound: string, volume?: number): void {
   if (!audioWin || audioWin.isDestroyed()) return;
+  if (REMINDER_SOUNDS.has(sound) && isQuiet()) return;
   audioWin.webContents.send("sound", { sound, pair: settings.soundPair, volume });
 }
 
 function smartPause(): TickContext["smartPause"] {
-  const s = activity.sample();
-  if (!s.frontApp) return null;
-  if (s.frontApp === app.getName() || s.frontApp === "Electron") return null;
-  const focus = matchesApp(s, settings.deepFocusApps);
-  if (focus) return { reason: "deep-focus", detail: focus };
-  const micMeeting = s.micApps.find((a) => !/^(farsight|electron)$/i.test(a));
-  if (micMeeting) return { reason: "meeting", detail: micMeeting };
-  const meeting = matchesApp(s, settings.meetingApps);
-  if (meeting) return { reason: "meeting", detail: s.frontApp };
-  if (settings.pauseForFullscreen && s.fullscreen) return { reason: "fullscreen", detail: s.frontApp };
-  return null;
+  return detectSmartPause(activity.sample(), settings);
 }
 
 const PAUSE_TEXT: Record<PauseReason, string> = {
@@ -99,6 +98,7 @@ const PAUSE_TEXT: Record<PauseReason, string> = {
   "deep-focus": "Paused for your focus app",
   meeting: "Paused for your meeting",
   fullscreen: "Paused while a fullscreen app is active",
+  video: "Paused while you watch a video",
   "office-hours": "Outside office hours",
   suspended: "Paused while asleep",
 };
@@ -267,6 +267,8 @@ function openSettings(tab?: string): void {
 }
 
 function showToast(kind: ToastKind, payload: unknown, autoCloseMs?: number): void {
+  // Nothing automatic pops up during calls or videos; replies to the user's own clicks still show.
+  if (isQuiet() && kind !== "notice") return;
   closeToast(kind);
   const win = createToastWindow(kind, payload, kind === "wellness" ? settings.reminderPosition : "top-right");
   toasts.set(kind, win);
@@ -373,7 +375,11 @@ function handle(events: EngineEvent[]): void {
         }
         break;
       case "paused":
-        if (ev.reason === "meeting" || ev.reason === "deep-focus" || ev.reason === "fullscreen") {
+        if (isQuietReason(ev.reason)) {
+          // Calls and videos: clear anything on screen and stay silent.
+          hideCountdown();
+          for (const k of ["heads-up", "wellness", "returned", "paused"] as const) closeToast(k);
+        } else if (ev.reason === "deep-focus" || ev.reason === "fullscreen") {
           hideCountdown();
           closeToast("heads-up");
           showToast("paused", { reason: ev.reason, detail: ev.detail }, 6000);
@@ -394,17 +400,37 @@ function handle(events: EngineEvent[]): void {
   }
 }
 
+let lastTickAt: number | null = null;
+
 function tick(): void {
   const now = Date.now();
+  const dt = lastTickAt == null ? 0 : Math.min(5, Math.max(0, (now - lastTickAt) / 1000));
+  lastTickAt = now;
+
+  const sample = activity.sample();
+  const video = detectVideo(sample, settings);
+  const pause = smartPause();
+  // On a call or watching a video there's no keyboard/mouse input, but the user is still at
+  // the screen: don't let idle detection pause/reset the session (or count it as a break).
+  const engaged = isQuietReason(pause?.reason) || (video != null && !settings.videoPauseEnabled);
   const ctx: TickContext = {
-    idleSec: powerMonitor.getSystemIdleTime(),
+    idleSec: engaged ? 0 : powerMonitor.getSystemIdleTime(),
     screenLocked,
     suspended,
     outsideOfficeHours: isOutsideOfficeHours(settings, new Date(now)),
-    smartPause: smartPause(),
+    smartPause: pause,
   };
   handle(engine.tick(now, ctx));
   const snap = engine.snapshot();
+  if (process.env.FARSIGHT_DEBUG) {
+    console.log(
+      `[tick] ${snap.status}${snap.pause ? `/${snap.pause.reason}` : ""} work=${snap.workElapsed.toFixed(1)} front=${sample.frontApp} video=${JSON.stringify(sample.videoApps)} idle=${ctx.idleSec}`,
+    );
+  }
+  if (video && settings.statsEnabled && snap.status !== "stopped" && !screenLocked && !suspended && dt > 0) {
+    stats.addVideo(now, dt, video);
+    statsStore.writeSoon(() => stats.days, 10_000);
+  }
   if (snap.status !== "working") hideCountdown();
   broadcast("state", snap);
   updateTray();
@@ -579,6 +605,8 @@ app.whenReady().then(async () => {
     for (let i = 0; i < 6; i++) stats.breakTaken(Date.now());
     stats.breakSkipped(Date.now());
     stats.breakSkipped(Date.now());
+    stats.addVideo(Date.now(), 47 * 60, "Brave Browser");
+    stats.addVideo(Date.now(), 12 * 60, "VLC");
     createTray();
     await runScreenshots({ command, openBreakWindows, closeBreakWindows, showToast, showCountdown, openSettings, togglePopover, engine, settings });
     return;

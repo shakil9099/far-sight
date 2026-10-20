@@ -67,6 +67,7 @@ const PAUSE: Record<string, [string, IconName, string]> = {
   meeting: ["sky", "call", "On a call"],
   "deep-focus": ["gold", "target", "Deep focus"],
   fullscreen: ["pink", "screen", "Fullscreen app"],
+  video: ["pink", "play", "Watching a video"],
 };
 
 function paused(): void {

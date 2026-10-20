@@ -78,6 +78,12 @@ export interface Settings {
   meetingApps: string[];
   pauseForFullscreen: boolean;
   smartPauseCooldown: number;
+  /** Pause breaks while a video plays. */
+  videoPauseEnabled: boolean;
+  /** Only when the video app is the frontmost app (otherwise also in the background). */
+  videoFrontmostOnly: boolean;
+  /** Apps that never count as video playback. */
+  videoExcludedApps: string[];
 
   // Office hours
   officeHoursEnabled: boolean;
@@ -123,6 +129,8 @@ export interface Settings {
     skip: string;
   };
   hasCompletedOnboarding: boolean;
+  /** Bumped when defaults change in a way stored settings must pick up. */
+  settingsVersion: number;
 }
 
 export type BreakKind = "short" | "long" | "custom" | "planned";
@@ -133,6 +141,7 @@ export type PauseReason =
   | "deep-focus"
   | "meeting"
   | "fullscreen"
+  | "video"
   | "office-hours"
   | "suspended";
 
@@ -175,6 +184,9 @@ export interface DayStats {
   sessions: number[]; // session lengths in seconds
   longestSessionSec: number;
   hourly: number[]; // 24 buckets of focused seconds
+  /** Seconds of video watched, total and per app. */
+  videoSec: number;
+  videoApps: Record<string, number>;
 }
 
 export interface StatsSummary {

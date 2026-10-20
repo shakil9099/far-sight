@@ -31,6 +31,7 @@ const PAUSE_LABEL: Record<string, string> = {
   "deep-focus": "Paused for focus",
   meeting: "Paused for your call",
   fullscreen: "Paused · fullscreen app",
+  video: "Paused · video playing",
   "office-hours": "Outside office hours",
   suspended: "Paused",
 };
@@ -203,6 +204,7 @@ async function buildStats(): Promise<void> {
       "div",
       { class: "rows" },
       row("sky", "screen", "Screen time", formatDuration(st.today.screenTimeSec)),
+      row("pink", "play", "Video watched", st.today.videoSec >= 1 ? formatDuration(st.today.videoSec) : "None"),
       row("mint", "check", "Breaks taken", String(st.today.breaksTaken + st.today.naturalBreaks)),
     ),
   );

@@ -12,7 +12,7 @@ const out = join(root, "build/bin/farsight-mic");
 if (process.platform === "darwin") {
   if (!existsSync(out) || statSync(out).mtimeMs < statSync(src).mtimeMs) {
     mkdirSync(join(root, "build/bin"), { recursive: true });
-    execFileSync("clang", ["-O2", "-arch", "arm64", "-arch", "x86_64", "-mmacosx-version-min=11.0", "-framework", "CoreAudio", "-o", out, src], {
+    execFileSync("clang", ["-O2", "-arch", "arm64", "-arch", "x86_64", "-mmacosx-version-min=11.0", "-framework", "CoreAudio", "-framework", "IOKit", "-framework", "CoreFoundation", "-o", out, src], {
       stdio: "inherit",
     });
     console.log("built build/bin/farsight-mic");

@@ -87,7 +87,8 @@ Notes:
 | Idle pause, idle reset (counts as a natural break), return notice with Undo | ✅ | ✅ | `powerMonitor.getSystemIdleTime()` |
 | Pause on screen lock and sleep | ✅ | ✅ | `powerMonitor` events |
 | Smart pause: deep-focus apps (frontmost app list) | ✅ | ✅ | `lsappinfo` / Win32 `GetForegroundWindow` |
-| Smart pause: meetings via microphone in use | ✅ | ✅ | CoreAudio helper / Windows CapabilityAccessManager registry |
+| Smart pause: calls (Teams, WhatsApp, Zoom…) via microphone in use or video call; no notifications during calls or videos | ✅ | ✅ | CoreAudio helper / Windows CapabilityAccessManager registry |
+| Smart pause: video playback (frontmost or anywhere), video time in Stats | ✅ | ✅ | display-sleep power assertions (IOKit) / Windows media sessions |
 | Smart pause: fullscreen apps | — | ✅ | foreground window covers its monitor |
 | Office hours, planned breaks (fixed times) | ✅ | ✅ | engine + `platform.ts` |
 | Blink & posture reminders | ✅ | ✅ | engine wellness timers |

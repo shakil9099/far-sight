@@ -63,7 +63,7 @@ function select<T extends string | number>(key: Key, options: T[], fmt: (v: T) =
   return sel;
 }
 
-function seg<T extends string>(key: Key, options: [T, string][], onChange?: () => void): HTMLElement {
+function seg<T extends string | boolean>(key: Key, options: [T, string][], onChange?: () => void): HTMLElement {
   const wrap = el("div", { class: "seg" });
   for (const [v, label] of options) {
     wrap.append(
@@ -91,7 +91,7 @@ const h3 = (t: string) => el("h3", { textContent: t });
 const header = (title: string, lead: string) => [el("h2", { textContent: title }), el("p", { class: "lead", textContent: lead })];
 const secs = (v: number) => formatDuration(v);
 
-function appList(key: "deepFocusApps" | "meetingApps", placeholder: string): HTMLElement {
+function appList(key: "deepFocusApps" | "meetingApps" | "videoExcludedApps", placeholder: string): HTMLElement {
   const list = s[key];
   const chips = el("div", { class: "chips" });
   if (!list.length) chips.append(el("span", { class: "empty", style: "padding:0", textContent: "No apps yet" }));
@@ -274,24 +274,40 @@ function breaks(): Node[] {
 }
 
 function smartPause(): Node[] {
-  return [
+  const nodes: (Node | false)[] = [
     ...header("Smart Pause", "FarSight holds breaks while you're presenting, in a call, or in deep focus, then resumes automatically."),
     h3("Deep focus apps"),
     group(appList("deepFocusApps", "App name, e.g. Keynote")),
     el("p", { class: "note", textContent: "Breaks wait while any of these apps is in front." }),
-    h3("Meetings & calls"),
+    h3("Calls (Teams, WhatsApp, Zoom…)"),
     group(appList("meetingApps", "App name, e.g. zoom.us")),
     el("p", {
       class: "note",
       textContent:
-        "Breaks wait while one of these apps is in front, and whenever a physical microphone is in use (virtual devices like Teams' loopback are ignored).",
+        "Breaks wait during calls: whenever a physical microphone is in use, or one of these apps is in a video call or sharing your screen. Just having the app open doesn't count. FarSight shows no notifications during calls or videos.",
     }),
+    h3("Video playback"),
+    group(
+      row("Pause while a video plays", "YouTube, Netflix, VLC, QuickTime and other players. Video time is shown in Stats.", toggle("videoPauseEnabled", render)),
+      s.videoPauseEnabled &&
+        row(
+          "Trigger when the video is",
+          s.videoFrontmostOnly ? "Only when the video app is in front." : "Playing anywhere, even in a background window.",
+          seg("videoFrontmostOnly", [
+            [true, "In front"],
+            [false, "Anywhere"],
+          ]),
+        ),
+    ),
+    s.videoPauseEnabled && h3("Never count as video"),
+    s.videoPauseEnabled && group(appList("videoExcludedApps", "App name, e.g. Spotify")),
     h3("Other"),
     group(
       !isMac && row("Pause for fullscreen apps", "Videos, games and presentations.", toggle("pauseForFullscreen")),
       row("Cooldown after smart pause", "If a break is due when the pause ends, wait this long first.", select("smartPauseCooldown", [0, 15, 30, 60, 120], (v) => (v ? secs(v) : "None"))),
     ),
   ];
+  return nodes.filter((n): n is Node => n !== false);
 }
 
 function wellness(): Node[] {
@@ -539,12 +555,34 @@ async function statsTab(): Promise<Node[]> {
       stat("Breaks skipped", String(t.breaksSkipped)),
       stat("Longest stretch", t.longestSessionSec ? formatDuration(t.longestSessionSec) : "—"),
     ),
+    h3("Video watched today"),
+    videoBreakdown(t),
     h3("Focus by hour"),
     el("div", { class: "group" }, chart, labels),
     el("p", { class: "note", textContent: `Typical stretch today: ${median ? formatDuration(median) : "—"} · Snoozes: ${t.snoozes} · Natural breaks: ${t.naturalBreaks}` }),
     h3("Last 7 days"),
     week,
   ];
+}
+
+function videoBreakdown(t: StatsSummary["today"]): HTMLElement {
+  const apps = Object.entries(t.videoApps ?? {})
+    .filter(([, sec]) => sec >= 1)
+    .sort((a, b) => b[1] - a[1]);
+  if (!apps.length) return el("div", { class: "group" }, el("div", { class: "empty", textContent: "No video detected today." }));
+  const total = t.videoSec || 1;
+  return el(
+    "div",
+    { class: "group" },
+    row("Total", "Breaks are held while you watch, and resume when the video stops.", el("div", { class: "tabular", style: "font-weight:600", textContent: formatDuration(t.videoSec) })),
+    ...apps.map(([app, sec]) =>
+      row(
+        app,
+        `${Math.round((100 * sec) / total)}% of video time`,
+        el("div", { class: "tabular", style: "font-weight:600", textContent: formatDuration(sec) }),
+      ),
+    ),
+  );
 }
 
 function automation(): Node[] {

@@ -35,9 +35,25 @@ export const DEFAULT_SETTINGS: Settings = {
   waitForTypingToFinish: true,
 
   deepFocusApps: [],
-  meetingApps: ["zoom.us", "Zoom", "Microsoft Teams", "Teams", "ms-teams", "Webex", "FaceTime", "Skype", "Google Meet"],
+  meetingApps: [
+    "zoom.us",
+    "Zoom",
+    "Microsoft Teams",
+    "Teams",
+    "ms-teams",
+    "WhatsApp",
+    "Slack",
+    "Discord",
+    "Webex",
+    "FaceTime",
+    "Skype",
+    "Google Meet",
+  ],
   pauseForFullscreen: true,
   smartPauseCooldown: 30,
+  videoPauseEnabled: true,
+  videoFrontmostOnly: true,
+  videoExcludedApps: [],
 
   officeHoursEnabled: false,
   officeHours: {
@@ -85,6 +101,7 @@ export const DEFAULT_SETTINGS: Settings = {
     skip: "CommandOrControl+Alt+K",
   },
   hasCompletedOnboarding: false,
+  settingsVersion: 2,
 };
 
 /** Option lists shown in settings (seconds). */
@@ -105,6 +122,12 @@ export const OPTIONS = {
 
 export function mergeSettings(stored: Partial<Settings> | null | undefined): Settings {
   const merged = { ...DEFAULT_SETTINGS, ...(stored ?? {}) } as Settings;
+  // v2 added WhatsApp, Slack and Discord to the call apps.
+  if (stored && (stored.settingsVersion ?? 1) < 2) {
+    const have = new Set(merged.meetingApps.map((a) => a.toLowerCase()));
+    merged.meetingApps = [...merged.meetingApps, ...["WhatsApp", "Slack", "Discord"].filter((a) => !have.has(a.toLowerCase()))];
+  }
+  merged.settingsVersion = DEFAULT_SETTINGS.settingsVersion;
   merged.shortcuts = { ...DEFAULT_SETTINGS.shortcuts, ...(stored?.shortcuts ?? {}) };
   merged.officeHours = { ...DEFAULT_SETTINGS.officeHours, ...(stored?.officeHours ?? {}) };
   return merged;

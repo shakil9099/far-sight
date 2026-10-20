@@ -485,7 +485,7 @@ export class Engine {
 }
 
 function isSmartReason(r: PauseReason): boolean {
-  return r === "deep-focus" || r === "meeting" || r === "fullscreen";
+  return r === "deep-focus" || r === "meeting" || r === "fullscreen" || r === "video";
 }
 
 function stripInternal(b: BreakInfo & { completeNotified?: boolean }): BreakInfo {
