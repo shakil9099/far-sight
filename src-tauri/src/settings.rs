@@ -2,7 +2,7 @@
 use crate::types::*;
 use std::collections::BTreeMap;
 
-pub const SETTINGS_VERSION: u32 = 2;
+pub const SETTINGS_VERSION: u32 = 3;
 
 fn day(enabled: bool) -> DaySchedule {
     DaySchedule { enabled, start: TimeOfDay { hour: 9, minute: 0 }, end: TimeOfDay { hour: 18, minute: 0 } }
@@ -77,7 +77,10 @@ impl Default for Settings {
             blink_reminder_frequency: 5.0 * 60.0,
             posture_reminder_enabled: false,
             posture_reminder_frequency: 15.0 * 60.0,
-            reminder_position: "top-right".into(),
+            reminder_position: "center".into(),
+            reminder_size: "medium".into(),
+            reminder_duration: 5.0,
+            reminder_dim: false,
             reminders_during_pause: false,
 
             break_background: "gradient".into(),
@@ -127,6 +130,10 @@ pub fn from_json(value: serde_json::Value) -> Settings {
             }
         }
     }
+    if stored_version < 3 {
+        // v3 introduced centered, animated reminders as the default.
+        s.reminder_position = "center".into();
+    }
     s.settings_version = SETTINGS_VERSION;
     s
 }
@@ -151,8 +158,14 @@ mod tests {
     fn migrates_call_apps_from_v1() {
         let s = from_json(json!({ "meetingApps": ["Zoom", "slack"] }));
         assert_eq!(s.meeting_apps, vec!["Zoom", "slack", "WhatsApp", "Discord"]);
-        let s = from_json(json!({ "meetingApps": ["Zoom"], "settingsVersion": 2 }));
+        let s = from_json(json!({ "meetingApps": ["Zoom"], "settingsVersion": 3 }));
         assert_eq!(s.meeting_apps, vec!["Zoom"]);
+    }
+
+    #[test]
+    fn v3_centers_reminders_once() {
+        assert_eq!(from_json(json!({ "reminderPosition": "top-right", "settingsVersion": 2 })).reminder_position, "center");
+        assert_eq!(from_json(json!({ "reminderPosition": "top-right", "settingsVersion": 3 })).reminder_position, "top-right");
     }
 
     #[test]

@@ -16,10 +16,18 @@ use std::sync::Arc;
 use tauri::{Manager, RunEvent, WindowEvent};
 use types::{DisciplineLevel, Status};
 
+/// Debug-only `--self-test`: runs beside an installed FarSight with its own throwaway data.
+pub fn is_self_test() -> bool {
+    cfg!(debug_assertions) && std::env::args().any(|a| a == "--self-test")
+}
+
 pub fn run() {
-    let tauri_app = tauri::Builder::default()
+    let mut builder = tauri::Builder::default();
+    if !is_self_test() {
         // Launching FarSight again reveals its panel (handy when the menu-bar icon is hidden by a notch).
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| ui::toggle_popover(app, None)))
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| ui::toggle_popover(app, None)));
+    }
+    let tauri_app = builder
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
         .plugin(tauri_plugin_dialog::init())
@@ -66,7 +74,7 @@ pub fn run() {
             app::start_loop(handle.clone());
 
             #[cfg(debug_assertions)]
-            if std::env::args().any(|a| a == "--self-test") {
+            if is_self_test() {
                 app::self_test(handle.clone());
                 return Ok(());
             }

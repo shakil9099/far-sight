@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>FarSight Reminder</title>
+    <link rel="stylesheet" href="base.css" />
+    <link rel="stylesheet" href="reminder.css" />
+  </head>
+  <body>
+    <div id="dim"></div>
+    <div id="stage">
+      <div id="orb">
+        <div class="ripple"></div>
+        <div class="ripple r2"></div>
+        <div id="disc">
+          <svg id="ring" viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="track" cx="50" cy="50" r="47" />
+            <circle class="progress" id="progress" cx="50" cy="50" r="47" />
+          </svg>
+          <div id="art"></div>
+        </div>
+      </div>
+      <div id="label">
+        <div id="title"></div>
+        <div id="sub"></div>
+      </div>
+    </div>
+    <script src="reminder.js"></script>
+  </body>
+</html>

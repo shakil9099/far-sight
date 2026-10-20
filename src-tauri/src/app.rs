@@ -64,10 +64,16 @@ pub struct App {
 
 impl App {
     pub fn load(app: &AppHandle) -> Arc<App> {
-        let data_dir = app.path().app_data_dir().unwrap_or_else(|_| std::env::temp_dir().join("FarSight"));
+        let data_dir = if crate::is_self_test() {
+            std::env::temp_dir().join(format!("farsight-selftest-{}", std::process::id()))
+        } else {
+            app.path().app_data_dir().unwrap_or_else(|_| std::env::temp_dir().join("FarSight"))
+        };
         let cache_dir = app.path().app_cache_dir().unwrap_or_else(|_| std::env::temp_dir()).join("sounds");
         let _ = std::fs::create_dir_all(&data_dir);
-        migrate_from_electron(app, &data_dir);
+        if !crate::is_self_test() {
+            migrate_from_electron(app, &data_dir);
+        }
 
         let settings = read_json::<Value>(&data_dir.join("settings.json")).map(settings::from_json).unwrap_or_default();
         let mut stats = StatsBook::new(read_json::<BTreeMap<String, DayStats>>(&data_dir.join("stats.json")).unwrap_or_default());
@@ -192,6 +198,41 @@ fn show_toast(app: &AppHandle, st: &App, kind: &str, payload: Value, auto_close_
     }
 }
 
+/// Animated blink/posture reminder; the window closes after the page's exit animation.
+fn show_reminder(app: &AppHandle, st: &App, blink: bool) {
+    if st.quiet() {
+        return;
+    }
+    let s = st.settings();
+    let duration = s.reminder_duration.clamp(2.0, 30.0);
+    let params = json!({
+        "kind": if blink { "blink" } else { "posture" },
+        "size": s.reminder_size,
+        "position": s.reminder_position,
+        "duration": duration,
+        "dim": s.reminder_dim,
+    });
+    if ui::show_reminder(app, params).is_none() {
+        return;
+    }
+    let gen = {
+        let mut g = st.toast_gen.lock().unwrap();
+        let e = g.entry("reminder".into()).or_insert(0);
+        *e += 1;
+        *e
+    };
+    let app = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis((duration * 1000.0) as u64 + 700));
+        let st = app.state::<Arc<App>>();
+        if st.toast_gen.lock().unwrap().get("reminder") == Some(&gen) {
+            if let Some(w) = app.get_webview_window("reminder") {
+                let _ = w.destroy();
+            }
+        }
+    });
+}
+
 fn hide_countdown(st: &App) {
     if let Some(c) = st.countdown.lock().unwrap().take() {
         c.hide();
@@ -297,6 +338,9 @@ pub fn handle(app: &AppHandle, st: &App, events: Vec<Event>) {
                     for k in ["heads-up", "wellness", "returned", "paused"] {
                         ui::close_toast(app, k);
                     }
+                    if let Some(w) = app.get_webview_window("reminder") {
+                        let _ = w.destroy();
+                    }
                 } else if matches!(reason, PauseReason::DeepFocus | PauseReason::Fullscreen) {
                     hide_countdown(st);
                     ui::close_toast(app, "heads-up");
@@ -304,7 +348,7 @@ pub fn handle(app: &AppHandle, st: &App, events: Vec<Event>) {
                 }
             }
             Event::Wellness { blink } => {
-                show_toast(app, st, "wellness", json!({ "kind": if blink { "blink" } else { "posture" } }), Some(6000));
+                show_reminder(app, st, blink);
                 if s.reminder_sounds_enabled {
                     play(st, if blink { "blink" } else { "posture" }, None, Some(s.reminder_volume));
                 }
@@ -818,6 +862,13 @@ pub fn self_test(app: AppHandle) {
         }
         wait(2500);
         step(&format!("open toasts after auto-close: {}", app.webview_windows().keys().filter(|l| l.starts_with("toast-")).count()));
+        step("reminders");
+        for (blink, name) in [(true, "reminder-blink"), (false, "reminder-posture")] {
+            show_reminder(&app, &st, blink);
+            wait(2200);
+            shot("reminder", name);
+            wait(400);
+        }
         step("countdown");
         *st.countdown.lock().unwrap() = ui::Countdown::show(&app);
         wait(1200);

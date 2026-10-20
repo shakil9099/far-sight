@@ -99,7 +99,7 @@ Notes:
 | Smart pause: video playback (frontmost or anywhere), video time in Stats | ✅ | ✅ | display-sleep power assertions (IOKit) / Windows media sessions |
 | Smart pause: fullscreen apps | — | ✅ | foreground window covers its monitor |
 | Office hours, planned breaks (fixed times) | ✅ | ✅ | engine + `platform.rs` |
-| Blink & posture reminders | ✅ | ✅ | engine wellness timers |
+| Blink & posture reminders: animated, centered (or any corner), optional screen dim, click-through | ✅ | ✅ | `reminder.html` |
 | Stats, hourly chart, 7-day history, Screen Score, video time per app | ✅ | ✅ | `src-tauri/src/stats.rs` |
 | Automations: run a command on break start/end | ✅ | ✅ | `sh` / `cmd` (osascript, `shortcuts run`, PowerShell) |
 | Lock screen when a break starts | ✅ | ✅ | `pmset displaysleepnow` / `LockWorkStation` |

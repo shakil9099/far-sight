@@ -110,6 +110,12 @@ pub struct Settings {
     pub posture_reminder_enabled: bool,
     pub posture_reminder_frequency: f64,
     pub reminder_position: String,
+    /// "small" | "medium" | "large"
+    pub reminder_size: String,
+    /// Seconds the blink/posture reminder stays on screen.
+    pub reminder_duration: f64,
+    /// Dim the rest of the screen while a reminder shows.
+    pub reminder_dim: bool,
     pub reminders_during_pause: bool,
 
     pub break_background: String,

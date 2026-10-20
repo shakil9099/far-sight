@@ -1,0 +1,407 @@
+/* Blink & posture reminders: a floating glass orb with an animated illustration.
+   The window is click-through and covers the whole display, so the orb can sit anywhere. */
+:root {
+  --size: 240px;
+  --dur: 5s;
+  --accent-1: #5ac8fa;
+  --accent-2: #3a6df0;
+}
+body.small {
+  --size: 180px;
+}
+body.large {
+  --size: 320px;
+}
+body.posture {
+  --accent-1: #5ee6a8;
+  --accent-2: #1fa67a;
+}
+html,
+body {
+  overflow: hidden;
+}
+
+#dim {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(8, 6, 20, 0.25), rgba(8, 6, 20, 0.55));
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+body.dim.in #dim {
+  opacity: 1;
+}
+
+#stage {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--size) * 0.1);
+  padding: 48px;
+}
+body.pos-center #stage {
+  inset: 0;
+  justify-content: center;
+}
+body.pos-top-left #stage { top: 0; left: 0; }
+body.pos-top-center #stage { top: 0; left: 50%; transform: translateX(-50%); }
+body.pos-top-right #stage { top: 0; right: 0; }
+body.pos-bottom-left #stage { bottom: 0; left: 0; flex-direction: column-reverse; }
+body.pos-bottom-center #stage { bottom: 0; left: 50%; transform: translateX(-50%); flex-direction: column-reverse; }
+body.pos-bottom-right #stage { bottom: 0; right: 0; flex-direction: column-reverse; }
+
+/* ---------- orb ---------- */
+#orb {
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  opacity: 0;
+  transform: scale(0.55);
+  filter: blur(14px);
+}
+body.in #orb {
+  animation: orb-in 0.9s cubic-bezier(0.18, 1.35, 0.4, 1) forwards, float 4s ease-in-out 0.9s infinite;
+}
+body.out #orb {
+  animation: orb-out 0.6s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+}
+@keyframes orb-in {
+  60% {
+    filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+@keyframes orb-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.82);
+    filter: blur(10px);
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+  50% {
+    transform: translateY(-6px) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+#disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.28), transparent 46%),
+    radial-gradient(circle at 70% 85%, color-mix(in srgb, var(--accent-2) 45%, transparent), transparent 60%),
+    linear-gradient(160deg, rgba(48, 38, 78, 0.92), rgba(20, 16, 36, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -18px 40px rgba(0, 0, 0, 0.25),
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    0 0 80px color-mix(in srgb, var(--accent-1) 35%, transparent);
+  overflow: hidden;
+}
+
+.ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--accent-1) 70%, transparent);
+  opacity: 0;
+}
+body.in .ripple {
+  animation: ripple 2.4s ease-out 0.5s infinite;
+}
+body.in .ripple.r2 {
+  animation-delay: 1.7s;
+}
+@keyframes ripple {
+  from {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  to {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+/* countdown ring around the disc */
+#ring {
+  position: absolute;
+  inset: 3%;
+  width: 94%;
+  height: 94%;
+  transform: rotate(-90deg);
+}
+#ring circle {
+  fill: none;
+  stroke-width: 2.2;
+}
+#ring .track {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+#ring .progress {
+  stroke: var(--accent-1);
+  stroke-linecap: round;
+  stroke-dasharray: 295.31;
+  stroke-dashoffset: 0;
+}
+body.in #ring .progress {
+  animation: deplete var(--dur) linear 0.4s forwards;
+}
+@keyframes deplete {
+  to {
+    stroke-dashoffset: 295.31;
+  }
+}
+
+#art {
+  position: absolute;
+  inset: 18%;
+  display: grid;
+  place-items: center;
+}
+#art svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ---------- label ---------- */
+#label {
+  text-align: center;
+  padding: 12px 26px 14px;
+  border-radius: 22px;
+  background: rgba(24, 20, 40, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  opacity: 0;
+  transform: translateY(14px);
+}
+body.dim #label {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+body.in #label {
+  animation: label-in 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.1) 0.25s forwards;
+}
+body.out #label {
+  animation: label-out 0.45s ease forwards;
+}
+@keyframes label-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes label-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+#title {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: calc(var(--size) * 0.17);
+  line-height: 1.05;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.4);
+}
+#sub {
+  margin-top: 4px;
+  color: var(--fg-2);
+  font-size: calc(10px + var(--size) * 0.025);
+}
+
+/* ---------- blink illustration ---------- */
+.eye .lid {
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+  transform: scaleY(0.04);
+}
+body.in .eye .lid {
+  animation: open-eye 0.7s cubic-bezier(0.3, 1.3, 0.5, 1) 0.45s forwards, blink 2.6s ease-in-out 1.4s infinite;
+}
+@keyframes open-eye {
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes blink {
+  0%,
+  44%,
+  56%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.04);
+  }
+}
+.eye .iris {
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+}
+body.in .eye .iris {
+  animation: look 5.2s ease-in-out 1.2s infinite;
+}
+@keyframes look {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-5px, 0);
+  }
+  60% {
+    transform: translate(5px, -1px);
+  }
+}
+.eye .sparkle {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+body.in .eye .sparkle {
+  animation: twinkle 2.6s ease-in-out 1.8s infinite;
+}
+.eye .sparkle.s2 {
+  animation-delay: 2.5s !important;
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.3) rotate(0deg);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(0.4) rotate(90deg);
+  }
+}
+
+/* ---------- posture illustration ---------- */
+.figure .torso {
+  transform-box: view-box;
+  transform-origin: 37px 64px;
+  transform: rotate(26deg);
+}
+body.in .figure .torso {
+  animation: straighten 1s cubic-bezier(0.3, 1.45, 0.5, 1) 0.9s forwards, breathe 3.2s ease-in-out 2.2s infinite;
+}
+@keyframes straighten {
+  to {
+    transform: rotate(0deg);
+  }
+}
+@keyframes breathe {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  50% {
+    transform: rotate(0deg) translateY(-1.5px);
+  }
+}
+.figure .spine-glow {
+  opacity: 0;
+}
+body.in .figure .spine-glow {
+  animation: glow-on 0.8s ease 1.6s forwards;
+}
+@keyframes glow-on {
+  to {
+    opacity: 1;
+  }
+}
+.figure .check {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+}
+body.in .figure .check {
+  animation: pop 0.55s cubic-bezier(0.2, 1.8, 0.4, 1) 1.7s forwards;
+}
+@keyframes pop {
+  to {
+    transform: scale(1);
+  }
+}
+.figure .chev {
+  opacity: 0;
+}
+body.in .figure .chev {
+  animation: rise 1.8s ease-out 0.9s infinite;
+}
+body.in .figure .chev.c2 {
+  animation-delay: 1.2s;
+}
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.in #orb,
+  body.in #label {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  body.in .ripple,
+  body.in .eye .iris,
+  body.in .eye .sparkle,
+  body.in .figure .chev {
+    animation: none;
+  }
+  body.in .figure .torso,
+  body.in .figure .check {
+    animation: none;
+    transform: none;
+  }
+  body.in .eye .lid {
+    animation: none;
+    transform: none;
+  }
+}

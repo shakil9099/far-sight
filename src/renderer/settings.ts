@@ -329,12 +329,23 @@ function wellness(): Node[] {
     group(
       row(
         "Position",
-        null,
-        select("reminderPosition", ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"], (v) =>
+        "Where the animated reminder appears on the screen you're using.",
+        select("reminderPosition", ["center", "top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"], (v) =>
           v.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase()),
         ),
       ),
-      row("Keep reminders during smart pause", null, toggle("remindersDuringPause")),
+      row(
+        "Size",
+        null,
+        seg("reminderSize", [
+          ["small", "Small"],
+          ["medium", "Medium"],
+          ["large", "Large"],
+        ]),
+      ),
+      row("Keep the reminder visible for", null, select("reminderDuration", [3, 5, 8, 10, 15], (v) => `${v} sec`)),
+      row("Dim the screen while a reminder shows", "Clicks still pass through, so it never interrupts your work.", toggle("reminderDim")),
+      row("Keep reminders during smart pause", "Never during calls or videos.", toggle("remindersDuringPause")),
       row("Reminder sounds", null, toggle("reminderSoundsEnabled")),
       row("Reminder volume", null, slider("reminderVolume")),
     ),

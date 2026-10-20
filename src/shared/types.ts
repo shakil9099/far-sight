@@ -16,7 +16,8 @@ export interface DaySchedule {
 export type DisciplineLevel = "casual" | "balanced" | "hardcore";
 export type EscapeAction = "skip" | "snooze" | "none";
 export type BreakBackground = "gradient" | "blur" | "image";
-export type ReminderPosition = "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+export type ReminderPosition = "center" | "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+export type ReminderSize = "small" | "medium" | "large";
 export type MenuBarDisplay = "icon" | "icon-and-text" | "text";
 export type SoundPair = "chime" | "bell" | "harp" | "bubbles" | "piano" | "whoosh" | "none";
 
@@ -99,6 +100,11 @@ export interface Settings {
   postureReminderEnabled: boolean;
   postureReminderFrequency: number;
   reminderPosition: ReminderPosition;
+  reminderSize: ReminderSize;
+  /** Seconds the blink/posture reminder stays on screen. */
+  reminderDuration: number;
+  /** Dim the rest of the screen while a reminder shows. */
+  reminderDim: boolean;
   remindersDuringPause: boolean;
 
   // Break screen look

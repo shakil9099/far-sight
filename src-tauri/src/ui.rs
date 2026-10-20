@@ -209,6 +209,35 @@ pub fn close_toast(app: &AppHandle, kind: &str) {
     }
 }
 
+// ------------------------------------------------------------------ blink / posture reminders
+
+/// Full-display, click-through overlay on the screen with the cursor; the page draws the
+/// animated orb (centered by default) and optionally dims the screen.
+pub fn show_reminder(app: &AppHandle, params: Value) -> Option<WebviewWindow> {
+    if let Some(old) = app.get_webview_window("reminder") {
+        let _ = old.destroy();
+    }
+    let m = cursor_monitor(app)?;
+    let (x, y, w, h) = monitor_logical(&m);
+    let win = builder(app, "reminder", "reminder.html", params)
+        .position(x, y)
+        .inner_size(w, h)
+        .decorations(false)
+        .transparent(true)
+        .resizable(false)
+        .skip_taskbar(true)
+        .always_on_top(true)
+        .visible_on_all_workspaces(true)
+        .shadow(false)
+        .focused(false)
+        .build()
+        .ok()?;
+    let _ = win.set_ignore_cursor_events(true);
+    raise(app, &win, false);
+    let _ = win.show();
+    Some(win)
+}
+
 // ------------------------------------------------------------------ popover
 
 pub fn toggle_popover(app: &AppHandle, tray_rect: Option<Rect>) {
